@@ -11,20 +11,22 @@ def main():
 
     output = ''
     for animal in animals_data:
+        output += '<li class="cards__item">\n'
+
         if 'name' in animal:
-            output += f"Name: {animal['name']}\n"
+            output += f"    Name: {animal['name']}<br/>\n"
 
         if 'characteristics' in animal:
             if 'diet' in animal['characteristics']:
-                output += f"Diet: {animal['characteristics']['diet']}\n"
+                output += f"    Diet: {animal['characteristics']['diet']}<br/>\n"
 
             if 'locations' in animal and len(animal['locations']) > 0:
-                output += f"Location: {animal['locations'][0]}\n"
+                output += f"    Location: {animal['locations'][0]}<br/>\n"
 
             if 'type' in animal['characteristics']:
-                output += f"Type: {animal['characteristics']['type']}\n"
+                output += f"    Type: {animal['characteristics']['type']}<br/>\n"
 
-        output += "\n"
+        output += '</li>\n'
 
     with open("animal_template.html", "r") as f:
         template_content = f.read()
@@ -34,7 +36,7 @@ def main():
     with open("animals.html", "w") as f:
         f.write(new_html_content)
 
-    print("Erfolg: 'animals.html' wurde generiert.")
+    print("Schritt 3 abgeschlossen: 'animals.html' mit HTML-Tags generiert.")
 
 
 if __name__ == "__main__":
