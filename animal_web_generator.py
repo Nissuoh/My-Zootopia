@@ -6,42 +6,33 @@ def load_data(file_path):
         return json.load(handle)
 
 
-def serialize_animal(animal):
-    output = '<li class="cards__item">\n'
-
-    if 'name' in animal:
-        output += f'  <div class="card__title">{animal["name"]}</div>\n'
-
-    output += '  <p class="card__text">\n'
-
-    if 'characteristics' in animal and 'diet' in animal['characteristics']:
-        output += f'    <strong>Diet:</strong> {animal["characteristics"]["diet"]}<br/>\n'
-
-    if 'locations' in animal and len(animal['locations']) > 0:
-        output += f'    <strong>Location:</strong> {animal["locations"][0]}<br/>\n'
-
-    if 'characteristics' in animal and 'type' in animal['characteristics']:
-        output += f'    <strong>Type:</strong> {animal["characteristics"]["type"]}<br/>\n'
-
-    output += '  </p>\n'
-    output += '</li>\n'
-    return output
-
-
 def main():
-    animals_data = load_data('animals_data.json')
+    animals_data = load_data('animal_data.json')
 
-    animals_html = ""
+    output = ''
     for animal in animals_data:
-        animals_html += serialize_animal(animal)
+        if 'name' in animal:
+            output += f"Name: {animal['name']}\n"
 
-    with open("animals_template.html", "r") as f:
+        if 'characteristics' in animal:
+            if 'diet' in animal['characteristics']:
+                output += f"Diet: {animal['characteristics']['diet']}\n"
+
+            if 'locations' in animal and len(animal['locations']) > 0:
+                output += f"Location: {animal['locations'][0]}\n"
+
+            if 'type' in animal['characteristics']:
+                output += f"Type: {animal['characteristics']['type']}\n"
+
+        output += "\n"
+
+    with open("animal_template.html", "r") as f:
         template_content = f.read()
 
-    final_html = template_content.replace("__REPLACE_ANIMALS_INFO__", animals_html)
+    new_html_content = template_content.replace("__REPLACE_ANIMALS_INFO__", output)
 
     with open("animals.html", "w") as f:
-        f.write(final_html)
+        f.write(new_html_content)
 
     print("Erfolg: 'animals.html' wurde generiert.")
 
