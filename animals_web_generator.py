@@ -2,13 +2,38 @@ import json
 
 
 def load_data(file_path):
-    """Loads animal data from a JSON file."""
-    with open(file_path, "r") as handle:
-        return json.load(handle)
+    """
+    Lädt die Tierdaten aus einer JSON-Datei.
+    Behandelt Fehler für fehlende Dateien oder ungültiges JSON.
+    """
+    try:
+        with open(file_path, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except FileNotFoundError:
+        print(f"Fehler: Die Datei '{file_path}' wurde nicht gefunden.")
+        return []
+    except json.JSONDecodeError:
+        print(f"Fehler: Die Datei '{file_path}' enthält kein gültiges JSON.")
+        return []
+
+
+def read_template(file_path):
+    """
+    Liest die HTML-Vorlagendatei ein.
+    """
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        print(f"Fehler: Das Template '{file_path}' wurde nicht gefunden.")
+        return ""
 
 
 def serialize_animal(animal_obj):
-    """Serializes one animal into an HTML list item using safe access."""
+    """
+    Wandelt ein Tier-Objekt in ein HTML-Listen-Element um.
+    Nutzt .get() für sicheren Zugriff auf die Datenfelder.
+    """
     name = animal_obj.get('name')
     char = animal_obj.get('characteristics', {})
     locs = animal_obj.get('locations', [])
@@ -19,45 +44,52 @@ def serialize_animal(animal_obj):
 
     output += '  <div class="card__text">\n    <ul class="animal-details">\n'
 
-    if char.get('diet'):
-        output += f"      <li><strong>Diet:</strong> {char.get('diet')}</li>\n"
-    if locs:
-        output += f"      <li><strong>Location:</strong> {locs[0]}</li>\n"
-    if char.get('type'):
-        output += f"      <li><strong>Type:</strong> {char.get('type')}</li>\n"
-    if char.get('skin_type'):
-        output += f"      <li><strong>Skin Type:</strong> {char.get('skin_type')}</li>\n"
+    attributes = {
+        "Diet": char.get('diet'),
+        "Location": locs[0] if locs else None,
+        "Type": char.get('type'),
+        "Skin Type": char.get('skin_type')
+    }
+
+    for label, value in attributes.items():
+        if value:
+            output += f"      <li><strong>{label}:</strong> {value}</li>\n"
 
     output += '    </ul>\n  </div>\n</li>\n'
     return output
 
 
+def write_output(file_path, content):
+    """
+    Schreibt den generierten HTML-Inhalt in die Zieldatei.
+    """
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print(f"Datei erfolgreich erstellt: {file_path}")
+    except IOError as e:
+        print(f"Fehler beim Schreiben der Datei: {e}")
+
+
 def main():
-    """Main controller: Loads data, filters by skin type, and writes HTML."""
+    """
+    Hauptsteuerung: Lädt Daten, generiert HTML und speichert die Datei.
+    """
     data = load_data('animals_data.json')
+    if not data:
+        return
 
-    # Get skin types for the prompt
-    skins = {a.get('characteristics', {}).get('skin_type') for a in data if
-             a.get('characteristics', {}).get('skin_type')}
-    print("Available Skin Types:", ", ".join(sorted(skins)))
+    template = read_template('animals_template.html')
+    if not template:
+        return
 
-    user_input = input("Enter a skin type to filter (or press Enter for all): ").strip()
-
-    # Generate HTML content
     animals_html = ""
     for animal in data:
-        if not user_input or animal.get('characteristics', {}).get('skin_type') == user_input:
-            animals_html += serialize_animal(animal)
-
-    # Replace and write file
-    with open('animals_template.html', "r") as f:
-        template = f.read()
+        animals_html += serialize_animal(animal)
 
     final_content = template.replace("__REPLACE_ANIMALS_INFO__", animals_html)
 
-    with open("animals.html", "w") as f:
-        f.write(final_content)
-    print("Successfully generated animals.html")
+    write_output("animals.html", final_content)
 
 
 if __name__ == "__main__":
